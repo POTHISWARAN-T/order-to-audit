@@ -1,8 +1,10 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from masters.models import Item
+from masters.models import Item, Supplier
 
 
 class StockMovement(models.Model):
@@ -35,3 +37,27 @@ class StockMovement(models.Model):
 
     def __str__(self):
         return f"{self.item} {self.quantity} ({self.movement_type})"
+
+
+class Purchase(models.Model):
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.PROTECT,
+        limit_choices_to={"item_type__in": ["RAW", "PACK"]},
+    )
+    quantity = models.DecimalField(max_digits=12, decimal_places=3)
+    rate = models.DecimalField(max_digits=10, decimal_places=2, help_text="Rs per unit")
+    bill_number = models.CharField(max_length=50, blank=True)
+    purchase_date = models.DateField(default=timezone.localdate)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def amount(self):
+        return (self.quantity * self.rate).quantize(Decimal("0.01"))
+
+    def __str__(self):
+        return f"Purchase #{self.pk}: {self.item} {self.quantity}"
