@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from inventory.models import StockMovement
 from masters.models import BOM, BOMLine, Customer, Item, Supplier
 
 
@@ -56,5 +57,20 @@ class Command(BaseCommand):
         Supplier.objects.get_or_create(
             name="Sample Flour Mills", defaults={"gstin": "33PQRST1234L1Z8"}
         )
+
+        opening = [
+            (flour, "100"),
+            (oil, "30"),
+            (spice, "5"),
+            (pouch, "500"),
+            (carton, "30"),
+            (murukku, "50"),
+        ]
+        for item, qty in opening:
+            StockMovement.objects.get_or_create(
+                item=item,
+                movement_type=StockMovement.OPENING,
+                defaults={"quantity": Decimal(qty), "source_ref": "Opening balance"},
+            )
 
         self.stdout.write(self.style.SUCCESS("Seed data loaded."))
