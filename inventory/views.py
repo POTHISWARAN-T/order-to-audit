@@ -1,12 +1,12 @@
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from masters.models import Item
+from masters.permissions import STOCK_ROLES, role_required
 
 from .services import get_balance
 
 
-@login_required
+@role_required(*STOCK_ROLES)
 def stock_summary(request):
     rows = [
         {"item": item, "balance": get_balance(item)}

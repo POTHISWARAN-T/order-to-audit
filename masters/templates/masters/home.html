@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order-to-Audit</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 500px; }
+    li { margin: 10px 0; }
+    a, button { font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h2>Order-to-Audit</h2>
+  <p>Logged in as <b>{{ user.username }}</b> ({{ roles|join:", " }})</p>
+  <ul>
+    {% if can_stock %}<li><a href="/stock/">Stock summary</a></li>{% endif %}
+    {% if user.is_staff %}<li><a href="/admin/">Data entry (admin site)</a></li>{% endif %}
+    {% if not can_stock and not user.is_staff %}<li>Order entry arrives in the next phase.</li>{% endif %}
+  </ul>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log out</button>
+  </form>
+</body>
+</html>
