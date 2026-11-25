@@ -13,9 +13,12 @@
   <h2>Order-to-Audit</h2>
   <p>Logged in as <b>{{ user.username }}</b> ({{ roles|join:", " }})</p>
   <ul>
+    {% if "Salesman" in roles or user.is_superuser %}
+    <li><a href="/orders/new/">New order</a></li>
+    <li><a href="/orders/">My orders</a></li>
+    {% endif %}
     {% if can_stock %}<li><a href="/stock/">Stock summary</a></li>{% endif %}
     {% if user.is_staff %}<li><a href="/admin/">Data entry (admin site)</a></li>{% endif %}
-    {% if not can_stock and not user.is_staff %}<li>Order entry arrives in the next phase.</li>{% endif %}
   </ul>
   <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}

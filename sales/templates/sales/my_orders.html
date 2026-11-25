@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My orders</title>
+  <style>
+    body { font-family: sans-serif; margin: 12px; max-width: 480px; }
+    .order { border: 1px solid #ccc; border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+    .status { background: #eef; padding: 2px 8px; border-radius: 10px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    a { font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h2>My orders</h2>
+  <p><a href="{% url 'new_order' %}">+ New order</a> &middot; <a href="/">Home</a></p>
+
+  <h3>Customer-wise sales</h3>
+  {% if customer_sales %}
+  <table>
+    <tr><th>Customer</th><th>Sales (before tax)</th></tr>
+    {% for name, total in customer_sales %}
+    <tr><td>{{ name }}</td><td>Rs {{ total }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No sales yet.</p>
+  {% endif %}
+
+  <h3>Orders</h3>
+  {% for o in orders %}
+  <div class="order">
+    <b>ORD-{{ o.pk }}</b> &middot; {{ o.customer.name }}<br>
+    {{ o.created_at|date:"d M Y, H:i" }}<br>
+    {% for l in o.lines.all %}{{ l.product.name }} x {{ l.quantity }}<br>{% endfor %}
+    Total: Rs {{ o.total }} <span class="status">{{ o.get_status_display }}</span>
+  </div>
+  {% empty %}
+  <p>No orders yet.</p>
+  {% endfor %}
+</body>
+</html>
