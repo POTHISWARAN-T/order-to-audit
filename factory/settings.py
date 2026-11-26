@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'inventory',
     'production',  
     'sales',  
+    'billing',
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,8 @@ MAILERS = {
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+# Seller details printed on every invoice (invented demo values)
+COMPANY_NAME = "South Snacks Factory (demo)"
+COMPANY_ADDRESS = "12 Industrial Estate, Tiruchirappalli, Tamil Nadu"
+COMPANY_GSTIN = "33AAAAA0000A1Z5"
+COMPANY_STATE = "Tamil Nadu"
