@@ -11,4 +11,5 @@ urlpatterns = [
     path("", include("sales.urls")),
     path("", include("billing.urls")),
     path("", include("production.urls")),
+    path("", include("reports.urls")),
 ]

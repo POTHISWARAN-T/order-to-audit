@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ report.title }}</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; white-space: nowrap; }
+    th { background: #eee; }
+    .box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 16px; margin: 12px 0; }
+    input, button { font-size: 16px; padding: 6px; }
+    .btn { display: inline-block; padding: 6px 12px; margin-right: 6px; border: 1px solid #888; border-radius: 6px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <p><a href="{% url 'report_index' %}?{{ query }}">&larr; All reports</a></p>
+  <h2>{{ report.title }}</h2>
+  <p>{{ period }}</p>
+
+  {% if report.dated %}
+  <div class="box">
+    <form method="get">
+      From <input type="date" name="start" value="{{ start|date:'Y-m-d' }}">
+      To <input type="date" name="end" value="{{ end|date:'Y-m-d' }}">
+      <button type="submit">Apply dates</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <p>
+    <a class="btn" href="?{{ query }}&format=csv">Download CSV</a>
+    <a class="btn" href="?{{ query }}&format=xlsx">Download Excel</a>
+    <a class="btn" href="?{{ query }}&format=pdf">Download PDF</a>
+  </p>
+
+  <div class="scroll">
+    <table>
+      <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
+      {% for row in rows %}
+      <tr>{% for c in row %}<td>{{ c }}</td>{% endfor %}</tr>
+      {% empty %}
+      <tr><td colspan="{{ headers|length }}">No records in this period.</td></tr>
+      {% endfor %}
+      {% if totals %}
+      <tr>{% for c in totals %}<td><b>{{ c }}</b></td>{% endfor %}</tr>
+      {% endif %}
+    </table>
+  </div>
+</body>
+</html>

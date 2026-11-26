@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reports</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 1000px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    .box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 16px; margin-bottom: 24px; }
+    input, button { font-size: 16px; padding: 6px; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Home</a></p>
+  <h2>Reports</h2>
+  <div class="box">
+    <form method="get">
+      From <input type="date" name="start" value="{{ start|date:'Y-m-d' }}">
+      To <input type="date" name="end" value="{{ end|date:'Y-m-d' }}">
+      <button type="submit">Apply dates</button>
+    </form>
+    <p>The dates apply to every report below, except outstanding receivables, which is always as on today.</p>
+  </div>
+  <table>
+    <tr><th>Report</th><th>View</th><th>CSV</th><th>Excel</th><th>PDF</th></tr>
+    {% for r in reports %}
+    <tr>
+      <td>{{ r.title }}</td>
+      <td><a href="{% url 'report_view' r.slug %}?{{ query }}">View</a></td>
+      <td><a href="{% url 'report_view' r.slug %}?{{ query }}&format=csv">CSV</a></td>
+      <td><a href="{% url 'report_view' r.slug %}?{{ query }}&format=xlsx">Excel</a></td>
+      <td><a href="{% url 'report_view' r.slug %}?{{ query }}&format=pdf">PDF</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
