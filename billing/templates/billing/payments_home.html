@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payments and outstanding</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 1100px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    .num { text-align: right; }
+    .success { background: #dfd; padding: 8px; border-radius: 6px; }
+    .error { background: #fdd; padding: 8px; border-radius: 6px; }
+    .box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 16px; margin-bottom: 24px; }
+    label { display: block; margin-top: 8px; }
+    select, input { font-size: 16px; padding: 6px; min-width: 260px; }
+    button { font-size: 16px; padding: 8px 16px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Home</a></p>
+  <h2>Payments and outstanding</h2>
+  {% for m in messages %}<p class="{{ m.tags }}">{{ m }}</p>{% endfor %}
+
+  <div class="box">
+    <h3>Record a payment</h3>
+    {% if open_items %}
+    <form method="post">
+      {% csrf_token %}
+      <label>Invoice
+        <select name="invoice" required>
+          <option value="">Choose an invoice</option>
+          {% for x in open_items %}
+          <option value="{{ x.invoice.pk }}">{{ x.invoice.invoice_number }} &middot; {{ x.invoice.customer.name }} &middot; due Rs {{ x.outstanding }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Amount received (Rs)
+        <input type="number" name="amount" step="0.01" min="0.01" required>
+      </label>
+      <label>Payment date
+        <input type="date" name="payment_date" value="{{ today }}" required>
+      </label>
+      <label>Mode
+        <select name="mode">
+          {% for code, name in modes %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Reference (UPI id, cheque number)
+        <input type="text" name="reference" maxlength="60">
+      </label>
+      <button type="submit">Save payment</button>
+    </form>
+    {% else %}
+    <p>Every invoice is fully paid, or no invoice exists yet.</p>
+    {% endif %}
+  </div>
+
+  <h3>Outstanding by customer (ageing from invoice date)</h3>
+  <table>
+    <tr>
+      <th>Customer</th>
+      {% for label in bucket_labels %}<th class="num">{{ label }}</th>{% endfor %}
+      <th class="num">Total outstanding (Rs)</th>
+    </tr>
+    {% for row in ageing_rows %}
+    <tr>
+      <td>{{ row.customer.name }}</td>
+      {% for b in row.buckets %}<td class="num">{{ b }}</td>{% endfor %}
+      <td class="num"><b>{{ row.total }}</b></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">Nothing is outstanding.</td></tr>
+    {% endfor %}
+    <tr>
+      <td><b>All customers</b></td>
+      {% for b in ageing_total.buckets %}<td class="num"><b>{{ b }}</b></td>{% endfor %}
+      <td class="num"><b>{{ ageing_total.total }}</b></td>
+    </tr>
+  </table>
+
+  <h3>Invoices: paid and outstanding</h3>
+  <table>
+    <tr><th>Invoice</th><th>Date</th><th>Customer</th><th class="num">Total (Rs)</th><th class="num">Paid (Rs)</th><th class="num">Outstanding (Rs)</th></tr>
+    {% for x in items %}
+    <tr>
+      <td><a href="{% url 'invoice_detail' x.invoice.pk %}">{{ x.invoice.invoice_number }}</a></td>
+      <td>{{ x.invoice.invoice_date|date:"d M Y" }}</td>
+      <td>{{ x.invoice.customer.name }}</td>
+      <td class="num">{{ x.invoice.total_amount }}</td>
+      <td class="num">{{ x.paid }}</td>
+      <td class="num">{{ x.outstanding }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No invoices yet.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h3>Payments received</h3>
+  <table>
+    <tr><th>Date</th><th>Invoice</th><th>Customer</th><th class="num">Amount (Rs)</th><th>Mode</th><th>Reference</th></tr>
+    {% for p in payments %}
+    <tr>
+      <td>{{ p.payment_date|date:"d M Y" }}</td>
+      <td>{{ p.invoice.invoice_number }}</td>
+      <td>{{ p.invoice.customer.name }}</td>
+      <td class="num">{{ p.amount }}</td>
+      <td>{{ p.get_mode_display }}</td>
+      <td>{{ p.reference }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No payments yet.</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

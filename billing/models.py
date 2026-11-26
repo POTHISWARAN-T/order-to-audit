@@ -69,3 +69,24 @@ class InvoiceLine(models.Model):
     @property
     def line_total(self):
         return self.taxable_value + self.cgst + self.sgst + self.igst
+    
+class Payment(models.Model):
+    CASH = "CASH"
+    UPI = "UPI"
+    BANK = "BANK"
+    CHEQUE = "CHEQUE"
+    MODES = [(CASH, "Cash"), (UPI, "UPI"), (BANK, "Bank transfer"), (CHEQUE, "Cheque")]
+
+    invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name="payments")
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_date = models.DateField(default=timezone.localdate)
+    mode = models.CharField(max_length=8, choices=MODES, default=CASH)
+    reference = models.CharField(max_length=60, blank=True)  # UPI id, cheque number
+    received_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="+",
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Rs {self.amount} against {self.invoice}"   
