@@ -90,3 +90,35 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Rs {self.amount} against {self.invoice}"   
+    
+class CreditNote(models.Model):
+    invoice = models.OneToOneField(Invoice, on_delete=models.PROTECT, related_name="credit_note")
+    fin_year = models.CharField(max_length=7)
+    sequence = models.PositiveIntegerField()
+    credit_note_number = models.CharField(max_length=20, unique=True)
+    note_date = models.DateField(default=timezone.localdate)
+    reason = models.CharField(max_length=200)
+    goods_returned = models.BooleanField(default=False)
+
+    # Amounts copied from the invoice: a full credit note reverses all of it
+    taxable_value = models.DecimalField(max_digits=12, decimal_places=2)
+    cgst = models.DecimalField(max_digits=12, decimal_places=2)
+    sgst = models.DecimalField(max_digits=12, decimal_places=2)
+    igst = models.DecimalField(max_digits=12, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="+",
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["fin_year", "sequence"], name="unique_credit_note_per_year"
+            )
+        ]
+
+    def __str__(self):
+        return self.credit_note_number    

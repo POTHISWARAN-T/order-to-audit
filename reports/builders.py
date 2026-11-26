@@ -322,3 +322,44 @@ REPORTS = [
     {"slug": "outstanding-ageing", "title": "Outstanding receivables with ageing", "build": outstanding_ageing, "roles": ACCOUNTS, "dated": False},
 ]
 REPORT_BY_SLUG = {r["slug"]: r for r in REPORTS}
+
+def credit_notes_register(start, end):
+    """Credit notes issued in the period, shown separately like GSTR-1 does."""
+    from billing.models import CreditNote
+
+    notes = (
+        CreditNote.objects.filter(note_date__range=(start, end))
+        .select_related("invoice", "invoice__customer")
+        .order_by("note_date", "fin_year", "sequence")
+    )
+    headers = [
+        "Credit note no", "Date", "Against invoice", "Invoice date", "Customer",
+        "Customer GSTIN", "Place of supply", "Taxable value", "CGST", "SGST", "IGST",
+        "Credit note total", "Goods returned", "Reason",
+    ]
+    rows = [
+        [
+            n.credit_note_number, day(n.note_date), n.invoice.invoice_number,
+            day(n.invoice.invoice_date), n.invoice.customer.name,
+            n.invoice.customer_gstin or "Unregistered", n.invoice.place_of_supply,
+            n.taxable_value, n.cgst, n.sgst, n.igst, n.total_amount,
+            "Yes" if n.goods_returned else "No", n.reason,
+        ]
+        for n in notes
+    ]
+    return {
+        "headers": headers,
+        "rows": rows,
+        "totals": total_row(len(headers), "Total", rows, [7, 8, 9, 10, 11]),
+    }
+
+
+_credit_report = {
+    "slug": "credit-notes",
+    "title": "Credit notes register (GSTR-1 shape)",
+    "build": credit_notes_register,
+    "roles": ACCOUNTS,
+    "dated": True,
+}
+REPORTS.append(_credit_report)
+REPORT_BY_SLUG[_credit_report["slug"]] = _credit_report

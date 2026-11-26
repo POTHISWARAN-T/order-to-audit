@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cancel {{ invoice.invoice_number }}</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 700px; }
+    .box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 16px; margin-bottom: 20px; }
+    .warn { background: #ffe9c7; padding: 8px 12px; border-radius: 6px; }
+    .error { background: #fdd; padding: 8px; border-radius: 6px; }
+    label { display: block; margin-top: 12px; }
+    input[type=text] { font-size: 16px; padding: 6px; width: 100%; box-sizing: border-box; }
+    button { font-size: 16px; padding: 8px 16px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <p><a href="{% url 'credit_notes_home' %}">&larr; Credit notes</a></p>
+  <h2>Cancel {{ invoice.invoice_number }}</h2>
+  {% for m in messages %}<p class="{{ m.tags }}">{{ m }}</p>{% endfor %}
+
+  <div class="box">
+    Customer: <b>{{ invoice.customer.name }}</b><br>
+    Invoice total: <b>Rs {{ invoice.total_amount }}</b> (taxable {{ invoice.taxable_value }}, GST {{ invoice.gst_total }})<br>
+    Paid so far: Rs {{ paid }}<br>
+    Dispatched: {% if invoice.dispatched_at %}Yes{% else %}No{% endif %}
+  </div>
+
+  <p class="warn">
+    The credit note reverses the whole invoice. The invoice itself is kept on record and cannot be deleted.
+    {% if paid %}Rs {{ paid }} has already been paid, so it will show as a refund due.{% endif %}
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <label>Reason
+      <input type="text" name="reason" maxlength="200" required>
+    </label>
+    <label>
+      <input type="checkbox" name="goods_returned" {% if not invoice.dispatched_at %}disabled{% endif %}>
+      The goods were returned to the factory (puts the packets back into stock)
+    </label>
+    <button type="submit">Issue credit note</button>
+  </form>
+</body>
+</html>

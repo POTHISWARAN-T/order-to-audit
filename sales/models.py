@@ -13,12 +13,14 @@ class Order(models.Model):
     REJECTED = "REJECTED"
     INVOICED = "INVOICED"
     DISPATCHED = "DISPATCHED"
+    CANCELLED = "CANCELLED"
     STATUSES = [
         (SUBMITTED, "Submitted"),
         (APPROVED, "Approved"),
         (REJECTED, "Rejected"),
         (INVOICED, "Invoiced"),
         (DISPATCHED, "Dispatched"),
+        (CANCELLED, "Cancelled"),
     ]
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)

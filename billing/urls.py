@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import payment_views, views
+from . import credit_views, payment_views, views
 
 urlpatterns = [
     path("manage/billing/", views.billing_home, name="billing_home"),
@@ -9,4 +9,6 @@ urlpatterns = [
     path("manage/invoices/<int:pk>/pdf/", views.invoice_pdf, name="invoice_pdf"),
     path("manage/invoices/<int:pk>/dispatch/", views.invoice_dispatch, name="invoice_dispatch"),
     path("manage/payments/", payment_views.payments_home, name="payments_home"),
+    path("manage/credit-notes/", credit_views.credit_notes_home, name="credit_notes_home"),
+    path("manage/invoices/<int:pk>/cancel/", credit_views.credit_note_create, name="credit_note_create"),
 ]

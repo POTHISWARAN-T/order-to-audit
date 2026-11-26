@@ -78,7 +78,7 @@ def my_orders(request):
     )
     totals = {}
     for order in orders:
-        if order.status == Order.REJECTED:
+        if order.status in (Order.REJECTED, Order.CANCELLED):
             continue
         name = order.customer.name
         totals[name] = totals.get(name, Decimal("0.00")) + order.total
@@ -87,3 +87,4 @@ def my_orders(request):
         "sales/my_orders.html",
         {"orders": orders, "customer_sales": sorted(totals.items())},
     )
+             
