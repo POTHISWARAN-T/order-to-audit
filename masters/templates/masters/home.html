@@ -20,8 +20,12 @@
     {% if "Admin" in roles or user.is_superuser %}
     <li><a href="/manage/orders/">Review orders</a></li>
     <li><a href="/manage/billing/">Billing and dispatch</a></li>
+    <li><a href="/manage/payments/">Payments and outstanding</a></li>
     {% endif %}
-    {% if can_stock %}<li><a href="/stock/">Stock summary</a></li>{% endif %}
+    {% if can_stock %}
+    <li><a href="/stock/">Stock summary</a></li>
+    <li><a href="/costing/">Costing</a></li>
+    {% endif %}
     {% if user.is_staff %}<li><a href="/admin/">Data entry (admin site)</a></li>{% endif %}
   </ul>
   <form method="post" action="{% url 'logout' %}">

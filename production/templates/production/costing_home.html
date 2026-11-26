@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Costing</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 1000px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    .num { text-align: right; }
+    .success { background: #dfd; padding: 8px; border-radius: 6px; }
+    .error { background: #fdd; padding: 8px; border-radius: 6px; }
+    .box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 16px; margin-bottom: 24px; }
+    label { display: block; margin-top: 8px; }
+    select, input { font-size: 16px; padding: 6px; min-width: 260px; }
+    button { font-size: 16px; padding: 8px 16px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Home</a></p>
+  <h2>Costing</h2>
+  {% for m in messages %}<p class="{{ m.tags }}">{{ m }}</p>{% endfor %}
+
+  {% if can_edit %}
+  <div class="box">
+    <h3>Add labour, gas, power or other cost to a run</h3>
+    <form method="post">
+      {% csrf_token %}
+      <label>Production run
+        <select name="run" required>
+          <option value="">Choose a run</option>
+          {% for c in costs %}
+          <option value="{{ c.run.pk }}">Run #{{ c.run.pk }} &middot; {{ c.run.product.name }} &middot; {{ c.run.run_date|date:"d M Y" }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Type of cost
+        <select name="kind">
+          {% for code, name in kinds %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Amount (Rs)
+        <input type="number" name="amount" step="0.01" required>
+      </label>
+      <label>Note
+        <input type="text" name="note" maxlength="100">
+      </label>
+      <button type="submit">Save cost</button>
+    </form>
+    <p>A saved cost cannot be edited. To correct a mistake, add the same cost again with a negative amount.</p>
+  </div>
+  {% endif %}
+
+  <h3>Cost per packet by product</h3>
+  <table>
+    <tr>
+      <th>Product</th><th class="num">Runs</th><th class="num">Good packets</th>
+      <th class="num">Total cost (Rs)</th><th class="num">Cost per packet (Rs)</th>
+      <th class="num">Selling price (Rs)</th><th class="num">Margin per packet (Rs)</th><th class="num">Margin %</th>
+    </tr>
+    {% for s in summary %}
+    <tr>
+      <td>{{ s.product.name }}</td>
+      <td class="num">{{ s.runs }}</td>
+      <td class="num">{{ s.packets }}</td>
+      <td class="num">{{ s.cost }}</td>
+      <td class="num"><b>{% if s.cost_per_packet is not None %}{{ s.cost_per_packet|floatformat:2 }}{% else %}n/a{% endif %}</b></td>
+      <td class="num">{{ s.price }}</td>
+      <td class="num">{% if s.margin is not None %}{{ s.margin|floatformat:2 }}{% endif %}</td>
+      <td class="num">{% if s.margin_pct is not None %}{{ s.margin_pct }}{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">No production runs yet.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h3>Cost of each production run</h3>
+  {% for c in costs %}
+  <div class="box">
+    <h3>Run #{{ c.run.pk }} &middot; {{ c.run.product.name }} &middot; {{ c.run.run_date|date:"d M Y" }}</h3>
+    <p>
+      Good packets: <b>{{ c.run.good_output }}</b> &middot;
+      Materials: Rs {{ c.material_total }} &middot;
+      Overheads: Rs {{ c.overhead_total }} &middot;
+      Total cost: <b>Rs {{ c.total_cost }}</b>
+    </p>
+    <p>
+      Cost per packet: <b>Rs {% if c.cost_per_packet is not None %}{{ c.cost_per_packet|floatformat:2 }}{% else %}n/a{% endif %}</b> &middot;
+      Selling price: Rs {{ c.price }} &middot;
+      Margin: Rs {% if c.margin is not None %}{{ c.margin|floatformat:2 }} ({{ c.margin_pct }}%){% else %}n/a{% endif %}
+    </p>
+
+    <table>
+      <tr><th>Material</th><th class="num">Used + wasted</th><th>Unit</th><th class="num">Weighted-average rate (Rs)</th><th class="num">Cost (Rs)</th></tr>
+      {% for m in c.materials %}
+      <tr>
+        <td>{{ m.line.item.name }}</td>
+        <td class="num">{{ m.used }}</td>
+        <td>{{ m.line.item.unit }}</td>
+        <td class="num">{{ m.rate|floatformat:4 }}</td>
+        <td class="num">{{ m.cost }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <table>
+      <tr><th>Overhead</th><th class="num">Amount (Rs)</th><th>Note</th></tr>
+      {% for o in c.overheads %}
+      <tr><td>{{ o.get_kind_display }}</td><td class="num">{{ o.amount }}</td><td>{{ o.note }}</td></tr>
+      {% empty %}
+      <tr><td colspan="3">No overheads recorded yet.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+</body>
+</html>
