@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Billing</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 1000px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    .success { background: #dfd; padding: 8px; border-radius: 6px; }
+    .error { background: #fdd; padding: 8px; border-radius: 6px; }
+    button { font-size: 16px; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Home</a></p>
+  <h2>Billing</h2>
+  {% for m in messages %}<p class="{{ m.tags }}">{{ m }}</p>{% endfor %}
+
+  <h3>Approved orders waiting for an invoice</h3>
+  <table>
+    <tr><th>Order</th><th>Customer</th><th>State</th><th>Total before tax (Rs)</th><th></th></tr>
+    {% for o in waiting %}
+    <tr>
+      <td>ORD-{{ o.pk }}</td>
+      <td>{{ o.customer.name }}</td>
+      <td>{{ o.customer.state }}</td>
+      <td>{{ o.total }}</td>
+      <td>
+        <form method="post" action="{% url 'invoice_create' o.pk %}">
+          {% csrf_token %}
+          <button type="submit">Create GST invoice</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No approved orders are waiting.</td></tr>
+    {% endfor %}
+  </table>
+
+  <h3>Invoices</h3>
+  <table>
+    <tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Taxable (Rs)</th><th>GST (Rs)</th><th>Total (Rs)</th><th>Dispatched</th><th></th></tr>
+    {% for i in invoices %}
+    <tr>
+      <td>{{ i.invoice_number }}</td>
+      <td>{{ i.invoice_date|date:"d M Y" }}</td>
+      <td>{{ i.customer.name }}</td>
+      <td>{{ i.taxable_value }}</td>
+      <td>{{ i.gst_total }}</td>
+      <td>{{ i.total_amount }}</td>
+      <td>{% if i.dispatched_at %}Yes{% else %}No{% endif %}</td>
+      <td><a href="{% url 'invoice_detail' i.pk %}">Open</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">No invoices yet.</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

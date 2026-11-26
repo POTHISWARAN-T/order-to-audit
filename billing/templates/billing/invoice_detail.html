@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ invoice.invoice_number }}</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 1000px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    .box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 12px; margin: 10px 0; }
+    .success { background: #dfd; padding: 8px; border-radius: 6px; }
+    .error { background: #fdd; padding: 8px; border-radius: 6px; }
+    .totals { width: 320px; margin-left: auto; margin-top: 12px; }
+    button, .btn { font-size: 16px; padding: 8px 16px; margin: 6px 6px 0 0; display: inline-block; }
+  </style>
+</head>
+<body>
+  <p><a href="{% url 'billing_home' %}">&larr; Billing</a></p>
+  <h2>Tax Invoice {{ invoice.invoice_number }}</h2>
+  {% for m in messages %}<p class="{{ m.tags }}">{{ m }}</p>{% endfor %}
+
+  <div class="box">
+    <b>{{ company.name }}</b><br>
+    {{ company.address }}<br>
+    GSTIN: {{ company.gstin }}
+  </div>
+  <div class="box">
+    Date: {{ invoice.invoice_date|date:"d M Y" }} &middot; Order: ORD-{{ invoice.order_id }}<br>
+    Bill to: <b>{{ invoice.customer.name }}</b> &middot; GSTIN: {{ invoice.customer_gstin|default:"Unregistered" }}<br>
+    Place of supply: {{ invoice.place_of_supply }}<br>
+    Supply type: {% if invoice.is_interstate %}Inter-state (IGST){% else %}Intra-state (CGST + SGST){% endif %}
+  </div>
+
+  <table>
+    <tr>
+      <th>#</th><th>Description</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Taxable</th>
+      {% if invoice.is_interstate %}<th>IGST</th>{% else %}<th>CGST</th><th>SGST</th>{% endif %}
+      <th>Total</th>
+    </tr>
+    {% for l in lines %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ l.description }}</td>
+      <td>{{ l.hsn_code }}</td>
+      <td>{{ l.quantity }}</td>
+      <td>{{ l.rate }}</td>
+      <td>{{ l.taxable_value }}</td>
+      {% if invoice.is_interstate %}
+      <td>{{ l.igst }} ({{ l.gst_rate|floatformat:"-2" }}%)</td>
+      {% else %}
+      <td>{{ l.cgst }}</td>
+      <td>{{ l.sgst }}</td>
+      {% endif %}
+      <td>{{ l.line_total }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table class="totals">
+    <tr><td>Taxable value</td><td>Rs {{ invoice.taxable_value }}</td></tr>
+    {% if invoice.is_interstate %}
+    <tr><td>IGST</td><td>Rs {{ invoice.igst }}</td></tr>
+    {% else %}
+    <tr><td>CGST</td><td>Rs {{ invoice.cgst }}</td></tr>
+    <tr><td>SGST</td><td>Rs {{ invoice.sgst }}</td></tr>
+    {% endif %}
+    <tr><td><b>Invoice total</b></td><td><b>Rs {{ invoice.total_amount }}</b></td></tr>
+  </table>
+
+  <p>
+    <a class="btn" href="{% url 'invoice_pdf' invoice.pk %}" target="_blank">Open PDF</a>
+    <a class="btn" href="{{ whatsapp_url }}" target="_blank">Share on WhatsApp</a>
+    <a class="btn" href="{{ email_url }}">Share by email</a>
+  </p>
+  <p>To share, open the PDF, save it, and attach it in WhatsApp or your email.</p>
+
+  {% if invoice.dispatched_at %}
+  <p class="success">Dispatched on {{ invoice.dispatched_at|date:"d M Y, H:i" }}.</p>
+  {% else %}
+  <form method="post" action="{% url 'invoice_dispatch' invoice.pk %}">
+    {% csrf_token %}
+    <button type="submit">Record dispatch</button>
+  </form>
+  {% endif %}
+</body>
+</html>

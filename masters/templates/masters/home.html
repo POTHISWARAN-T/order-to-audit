@@ -19,6 +19,7 @@
     {% endif %}
     {% if "Admin" in roles or user.is_superuser %}
     <li><a href="/manage/orders/">Review orders</a></li>
+    <li><a href="/manage/billing/">Billing and dispatch</a></li>
     {% endif %}
     {% if can_stock %}<li><a href="/stock/">Stock summary</a></li>{% endif %}
     {% if user.is_staff %}<li><a href="/admin/">Data entry (admin site)</a></li>{% endif %}
