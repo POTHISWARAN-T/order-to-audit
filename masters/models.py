@@ -36,13 +36,22 @@ class BOMLine(models.Model):
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
     qty_per_batch = models.DecimalField(max_digits=10, decimal_places=3)
 
+    def __str__(self):
+        return f"{self.item.name} ({self.qty_per_batch} per batch)"
+
 
 class Customer(models.Model):
     name = models.CharField(max_length=150)
     state = models.CharField(max_length=50)  # decides CGST+SGST or IGST
     gstin = models.CharField(max_length=15, blank=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Supplier(models.Model):
     name = models.CharField(max_length=150)
     gstin = models.CharField(max_length=15, blank=True)
+
+    def __str__(self):
+        return self.name

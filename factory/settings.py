@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'sales',  
     'billing',
     'reports',
+    'audit',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.CurrentUserMiddleware',
 ]
 
 ROOT_URLCONF = 'factory.urls'

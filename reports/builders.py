@@ -363,3 +363,39 @@ _credit_report = {
 }
 REPORTS.append(_credit_report)
 REPORT_BY_SLUG[_credit_report["slug"]] = _credit_report
+
+def audit_log_report(start, end):
+    """Who created, changed or deleted which record, and when."""
+    from audit.models import AuditLog
+
+    first, after = bounds(start, end)
+    entries = (
+        AuditLog.objects.filter(created_at__gte=first, created_at__lt=after)
+        .select_related("user")
+        .order_by("created_at", "pk")
+    )
+    headers = ["Date and time", "User", "Action", "Record type", "Record id", "Record", "Details"]
+    rows = [
+        [
+            moment(e.created_at),
+            e.user.username if e.user else "system",
+            e.get_action_display(),
+            e.model_name,
+            e.object_id,
+            e.object_repr,
+            e.changes,
+        ]
+        for e in entries
+    ]
+    return {"headers": headers, "rows": rows, "totals": None}
+
+
+_audit_report = {
+    "slug": "audit-log",
+    "title": "Audit trail (who changed what, and when)",
+    "build": audit_log_report,
+    "roles": ACCOUNTS,
+    "dated": True,
+}
+REPORTS.append(_audit_report)
+REPORT_BY_SLUG[_audit_report["slug"]] = _audit_report
