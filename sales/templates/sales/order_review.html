@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review ORD-{{ order.pk }}</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; max-width: 1000px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    input[type=number] { width: 100px; font-size: 16px; padding: 4px; }
+    .ok { background: #dfd; padding: 8px; border-radius: 6px; }
+    .bad { background: #fdd; padding: 8px; border-radius: 6px; }
+    .short { color: #b00; font-weight: bold; }
+    button { font-size: 16px; padding: 8px 16px; margin: 6px 6px 0 0; }
+  </style>
+</head>
+<body>
+  <p><a href="{% url 'order_list' %}">&larr; All orders</a></p>
+  <h2>ORD-{{ order.pk }} &middot; {{ order.customer.name }}</h2>
+  <p>
+    Salesman: {{ order.salesman.username }} &middot;
+    {{ order.created_at|date:"d M Y, H:i" }} &middot;
+    Customer state: {{ order.customer.state }} &middot;
+    Status: <b>{{ order.get_status_display }}</b>
+  </p>
+
+  {% for e in errors %}<p class="bad">{{ e }}</p>{% endfor %}
+  {% if editable %}
+    {% if has_shortage %}
+    <p class="bad">Stock does not cover this order. Reduce the quantity or reject it.</p>
+    {% else %}
+    <p class="ok">Stock covers this order.</p>
+    {% endif %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <table>
+      <tr><th>Product</th><th>Quantity</th><th>Rate (Rs)</th><th>Amount (Rs)</th><th>Free stock</th><th>Check</th></tr>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.line.product.name }}</td>
+        {% if editable %}
+        <td><input type="number" name="qty_{{ row.line.pk }}" min="0" step="1" value="{{ row.qty }}"></td>
+        <td><input type="number" name="rate_{{ row.line.pk }}" min="0" step="0.01" value="{{ row.rate }}"></td>
+        {% else %}
+        <td>{{ row.line.quantity }}</td>
+        <td>{{ row.line.rate }}</td>
+        {% endif %}
+        <td>{{ row.line.amount }}</td>
+        <td>{{ row.available }}</td>
+        <td>{% if row.shortage > 0 %}<span class="short">Short by {{ row.shortage }}</span>{% else %}OK{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p><b>Order total (before tax): Rs {{ order.total }}</b></p>
+    {% if editable %}
+    <button type="submit" name="action" value="save">Save changes</button>
+    <button type="submit" name="action" value="approve">Approve</button>
+    <button type="submit" name="action" value="reject">Reject</button>
+    {% endif %}
+  </form>
+</body>
+</html>
