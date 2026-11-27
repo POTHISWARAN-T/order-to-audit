@@ -141,3 +141,8 @@ COMPANY_NAME = "South Snacks Factory (demo)"
 COMPANY_ADDRESS = "12 Industrial Estate, Tiruchirappalli, Tamil Nadu"
 COMPANY_GSTIN = "33AAAAA0000A1Z5"
 COMPANY_STATE = "Tamil Nadu"
+# Speeds up the automated tests. Real logins keep the strong default hasher.
+import sys
+
+if "test" in sys.argv:
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

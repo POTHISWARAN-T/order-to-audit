@@ -81,25 +81,3 @@ class RunOverhead(models.Model):
     def __str__(self):
         return f"{self.get_kind_display()} Rs {self.amount} on run #{self.run_id}"    
     
-class RunOverhead(models.Model):
-    LABOUR = "LABOUR"
-    GAS = "GAS"
-    POWER = "POWER"
-    OTHER = "OTHER"
-    KINDS = [(LABOUR, "Labour"), (GAS, "Gas"), (POWER, "Power"), (OTHER, "Other")]
-
-    run = models.ForeignKey(ProductionRun, on_delete=models.PROTECT, related_name="overheads")
-    kind = models.CharField(max_length=8, choices=KINDS)
-    amount = models.DecimalField(
-        max_digits=10, decimal_places=2,
-        help_text="A negative amount corrects an earlier entry",
-    )
-    note = models.CharField(max_length=100, blank=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True,
-        on_delete=models.SET_NULL, related_name="+",
-    )
-    created_at = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f"{self.get_kind_display()} Rs {self.amount} on run #{self.run_id}"   

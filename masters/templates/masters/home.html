@@ -13,6 +13,9 @@
   <h2>Order-to-Audit</h2>
   <p>Logged in as <b>{{ user.username }}</b> ({{ roles|join:", " }})</p>
   <ul>
+    {% if "Owner" in roles or "Admin" in roles or "Accountant" in roles or user.is_superuser %}
+    <li><a href="/dashboard/">Owner dashboard</a></li>
+    {% endif %}
     {% if "Salesman" in roles or user.is_superuser %}
     <li><a href="/orders/new/">New order</a></li>
     <li><a href="/orders/">My orders</a></li>
